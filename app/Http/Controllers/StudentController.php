@@ -111,7 +111,7 @@ class StudentController extends Controller
     public function uploadProfile(Request $request)
 {
     $request->validate([
-        'student_pic' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'student_pic' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048',
         'LRN' => 'required|exists:students,LRN'
     ]);
 

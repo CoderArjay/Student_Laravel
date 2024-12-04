@@ -60,37 +60,35 @@ class EnrollmentController extends Controller
     
 
      public function create(Request $request)
-     {
-         // Validate incoming request data
-         $formFields = $request->validate([
-             'LRN' => 'required|integer|min:12', // Ensure LRN is valid
-             'last_attended' => 'required|string|max:255',
-             'public_private' => 'required|string|max:10',
-             'guardian_name' => 'required|string|max:255',
-             'grade_level' => 'required|string|max:50',
-             'strand' => 'nullable|string|max:100',
-             'school_year' => 'required|string|max:100',
-             'date_register' => 'nullable|date_format:Y-m-d', // Make this nullable if you want to set it to now
-         ]);
-     
-         // Add the current date to the form fields for date_register if not provided
-         if (empty($formFields['date_register'])) {
-             $formFields['date_register'] = now(); // Set current date
-         }
-     
-         // Check if an enrollment record already exists for the given LRN
-         $enrollment = Enrollment::where('LRN', $formFields['LRN'])->first();
-     
-         if ($enrollment) {
-             // Update the existing enrollment record
-             $enrollment->update($formFields);
-             return response()->json(['message' => 'Enrollment updated successfully', 'data' => $enrollment], 200);
-         } else {
-             // Create a new enrollment record
-             $enrollment = Enrollment::create($formFields);
-             return response()->json(['message' => 'Enrollment created successfully', 'data' => $enrollment], 201);
-         }
-     }
+    {
+        // Validate incoming request data
+        $formFields = $request->validate([
+            'LRN' => 'required|integer|min:12', // Ensure LRN is valid
+            'last_attended' => 'required|string|max:255',
+            'public_private' => 'required|string|max:10',
+            'guardian_name' => 'required|string|max:255',
+            'grade_level' => 'required|string|max:50',
+            'strand' => 'nullable|string|max:100',
+            'school_year' => 'required|string|max:100',
+            'date_register' => 'nullable|date_format:Y-m-d', // Make this nullable
+        ]);
+
+        // Add the current date to the form fields for date_register if not provided
+        $formFields['date_register'] = $formFields['date_register'] ?? now(); // Set current date if not provided
+
+        // Check if an enrollment record already exists for the given LRN
+        $enrollment = Enrollment::where('LRN', $formFields['LRN'])->first();
+
+        if ($enrollment) {
+            // Update the existing enrollment record
+            $enrollment->update($formFields);
+            return response()->json(['message' => 'Enrollment updated successfully', 'data' => $enrollment], 200);
+        } else {
+            // Create a new enrollment record
+            $enrollment = Enrollment::create($formFields);
+            return response()->json(['message' => 'Enrollment created successfully', 'data' => $enrollment], 201);
+        }
+    }
 
     /**
      * Remove the specified resource from storage.

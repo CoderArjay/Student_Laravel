@@ -28,6 +28,7 @@ class AnnouncementController extends Controller
             'subjects.subject_name', // Subject name
             'sections.grade_level' // Grade level
         )
+        ->orderBy('created_at', 'desc') // Order by created_at descending
         ->get();
 
     return response()->json($announcements);
