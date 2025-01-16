@@ -59,26 +59,30 @@ class EnrollmentController extends Controller
      */
     
 
-     public function create(Request $request)
-    {
-        // Validate incoming request data
+     public function create(Request $request) {
         $formFields = $request->validate([
             'LRN' => 'required|integer|min:12', // Ensure LRN is valid
             'last_attended' => 'required|string|max:255',
             'public_private' => 'required|string|max:10',
             'guardian_name' => 'required|string|max:255',
+            'guardian_no' => 'required|max:11',
             'grade_level' => 'required|string|max:50',
             'strand' => 'nullable|string|max:100',
-            'school_year' => 'required|string|max:100',
+            'school_year' => 'nullable|string|max:100', // Make this nullable
             'date_register' => 'nullable|date_format:Y-m-d', // Make this nullable
         ]);
-
+    
+        // Set the current school year if not provided
+        if (empty($formFields['school_year'])) {
+            $formFields['school_year'] = $this->getCurrentSchoolYear();
+        }
+    
         // Add the current date to the form fields for date_register if not provided
         $formFields['date_register'] = $formFields['date_register'] ?? now(); // Set current date if not provided
-
+    
         // Check if an enrollment record already exists for the given LRN
         $enrollment = Enrollment::where('LRN', $formFields['LRN'])->first();
-
+    
         if ($enrollment) {
             // Update the existing enrollment record
             $enrollment->update($formFields);
@@ -87,6 +91,19 @@ class EnrollmentController extends Controller
             // Create a new enrollment record
             $enrollment = Enrollment::create($formFields);
             return response()->json(['message' => 'Enrollment created successfully', 'data' => $enrollment], 201);
+        }
+    }
+    
+    // Helper method to get the current school year
+    private function getCurrentSchoolYear() {
+        $currentYear = date('Y');
+        $currentMonth = date('n'); // Get current month as a number (1-12)
+    
+        // Assuming school year starts in August (month 8)
+        if ($currentMonth >= 8) {
+            return "{$currentYear}-" . ($currentYear + 1); // e.g., "2024-2025"
+        } else {
+            return ($currentYear - 1) . "-{$currentYear}"; // e.g., "2023-2024"
         }
     }
 

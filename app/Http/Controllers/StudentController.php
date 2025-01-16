@@ -34,27 +34,31 @@ class StudentController extends Controller
         //
     }
 
-    public function enrollment(Request $request) // Sign Up
+    public function create(Request $request)
     {
-        // Validate incoming request data
-        $formField = $request->validate([
-            'LRN' => 'required|integer|unique:students,LRN|min:11', 
-            'fname' => 'required|string|max:255', 
-            'lname' => 'required|string|max:255', 
-            'mname' => 'required|string|max:255',
-            'bdate' => 'required|date',
-            'email' => 'required|email|max:255|unique:students,email',
-            'password' => 'required|string',
-            // 'confirm_password' => 'required|string'
-            
+        // Validate the incoming request data
+        $formFields = $request->validate([
+            'LRN' => 'required|integer|min:12', // Ensure LRN is valid
+            'lname' => 'required|string|max:255',
+            'fname' => 'required|string|max:255',
+            'mname' => 'nullable|string|max:255',
+            'bdate' => 'date',
+            'email' => 'required|string|max:100',
+            'password' => 'required|string|min:8',
         ]);
 
-        DB::transaction(function () use ($formField, $request) {
-            // Insert into the students table
-            $student = Student::create($formField);
-        });
+        // Check if a student with the given LRN already exists
+        $student = Student::where('LRN', $formFields['LRN'])->first();
 
-        return response()->json(['message' => 'Student enrolled successfully'], 201);
+        if ($student) {
+            // Update the existing student record with the new data
+            $student->update($formFields);
+            return response()->json(['message' => 'Student updated successfully', 'data' => $student], 200);
+        } else {
+            // Create a new student record
+            $student = Student::create($formFields);
+            return response()->json(['message' => 'Student created successfully', 'data' => $student], 201);
+        }
     }
         
     public function login(Request $request)
@@ -143,19 +147,22 @@ class StudentController extends Controller
     }
 }
 
-    public function getProfileImage($lrn){
+public function getProfileImage($lrn)
+{
+    // Retrieve student record by LRN
     $student = Student::where('LRN', $lrn)->first();
 
-    if(!$student || !$student->student_pic){
+    // Check if student exists and has a profile picture
+    if (!$student || !$student->student_pic) {
         return response()->json(['message' => 'Profile image not found'], 404);
     }
 
-    $baseURL = 'http://localhost:8000';
-    $imagePath = $student->student_pic;
+    // Generate the URL for the profile image
+    $imagePath = $student->student_pic; // Assuming this is the relative path
+    $fullImageUrl = url("storage/profiles/{$imagePath}"); // Generate full URL
 
-    $fullImageUrl = $baseURL . '/storage/' . $imagePath;
+    // Return the image URL in JSON response
     return response()->json(['image_url' => $fullImageUrl], 200);
-
 }
 
     /**
@@ -266,7 +273,7 @@ class StudentController extends Controller
             ->select(
                 'students.*', 
                 'enrollments.*',
-                'payments.proof_payment', 
+                'payments.amount_paid',
                 )
             ->where('students.LRN', $lrn)
             ->first();

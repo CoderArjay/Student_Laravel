@@ -59,12 +59,15 @@ class TuitionFeesController extends Controller
 
     public function getTuitionDetails($LRN): JsonResponse
     {
+        // Fetch enrollment record by LRN
         $enrollment = Enrollment::where('LRN', $LRN)->first();
-
+    
+        // Check if enrollment exists
         if (!$enrollment) {
             return response()->json(['message' => 'Enrollment not found'], 404);
         }
-
+    
+        // Initialize tuition details array
         $tuitionDetails = [
             'grade_level' => $enrollment->grade_level,
             'tuition' => null,
@@ -72,22 +75,32 @@ class TuitionFeesController extends Controller
             'esc' => null,
             'subsidy' => null,
             'req_downpayment' => null,
+            'old_account' => $enrollment->old_account, // Add old_account here
         ];
-
+    
+        // Fetch tuition data based on grade level
         $tuitionData = Tuition_Fees::where('grade_level', $enrollment->grade_level)->first();
-
+    
+        // Check if tuition data exists
         if ($tuitionData) {
             $tuitionDetails['tuition'] = $tuitionData->tuition; 
             $tuitionDetails['general'] = $tuitionData->general; 
-            $tuitionDetails['esc'] = $tuitionData->esc; 
             $tuitionDetails['subsidy'] = $tuitionData->subsidy; 
             $tuitionDetails['req_downpayment'] = $tuitionData->req_downpayment;
+    
+            // Determine ESC value based on enrollment type
+            if ($enrollment->type === 'private') {
+                $tuitionDetails['esc'] = 14000; // ESC for private students
+            } else {
+                $tuitionDetails['esc'] = 17500; // ESC for public students
+            }
         } else {
             return response()->json(['message' => 'Tuition details not found'], 404);
         }
-
+    
         return response()->json($tuitionDetails);
     }
+    
     
     
 

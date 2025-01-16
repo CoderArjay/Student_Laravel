@@ -15,10 +15,12 @@ class Enrollment extends Model
         'payment_approval', 
         'grade_level', 
         'guardian_name', 
+        'guardian_no', 
         'last_attended', 
         'public_private', 
         'date_register', 
         'strand', 
-        'school_year'
+        'school_year',
+        'old_account'
     ];
 }

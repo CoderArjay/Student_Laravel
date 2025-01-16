@@ -36,6 +36,20 @@ class MessageController extends Controller
         return response()->json($latestMessages);
     }
 
+    // public function latestMessages(Request $request)
+    // {
+    //     $uid = $request->query('uid'); // Get UID from query parameters
+
+    //     // Fetch messages for the specific student using the query builder
+    //     $messages = DB::table('messages')
+    //         ->where('LRN', $uid) // Assuming 'student_id' is the column in your messages table
+    //         ->orderBy('created_at', 'desc') // Order by creation date descending
+    //         ->take(10) // Limit to the latest 10 messages
+    //         ->get();
+
+    //     return response()->json($messages);
+    // }
+
     public function sendMessage(Request $request) {
         $validator = Validator::make($request->all(), [
             'message_sender' => 'required|string',

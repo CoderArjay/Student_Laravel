@@ -49,6 +49,7 @@ Route::post('/students/upload-profile', [StudentController::class, 'uploadProfil
 Route::get('/attendance-report/{LRN}', [AuthController::class, 'getAttendanceReport']);
 Route::get('/displaySOA/{id}', [AuthController::class, 'displaySOA']);
 Route::get('/student-report/{LRN}', [AuthController::class, 'getStudentReport']);
+
 Route::put('/students/{student}', [StudentController::class, 'update']);
 Route::get('/students/{LRN}/profile-image', [StudentController::class, 'getProfileImage']);
 Route::get('/students/check/{lrn}', [StudentController::class, 'checkStudentInfo']);
@@ -68,30 +69,24 @@ Route::middleware('auth:sanctum')->post('/Studentlogout', [StudentController::cl
  Route::post('/sendMessage', [AuthController::class, 'sendMessage']);
  Route::get('/getrecepeints', [AuthController::class, 'getrecepeints']); //
  Route::post('/composemessage', [AuthController::class, 'composenewmessage']); //
+ Route::post('/markAsRead', [AuthController::class, 'markAsRead']);
+ Route::get('/getUnreadCount', [AuthController::class, 'getUnreadCount']);
+ Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [AnnouncementController::class, 'notification']);
+    Route::post('/notifications/viewed', [AnnouncementController::class, 'viewed']);
+});
 
 
 //Enrollment Process
 Route::apiResource('enrollments', EnrollmentController::class);
-Route::post('/enrollment', [StudentController::class, 'enrollment']);
+Route::post('/enrollment', [StudentController::class, 'create']);
 Route::get('/students/{LRN}', [StudentController::class, 'show']);
 Route::get('/enrollments/{LRN}', [EnrollmentController::class, 'getEnrollmentById']);
 Route::post('/enrollments', [EnrollmentController::class, 'create']);
 Route::get('/students/{LRN}/tuition-details', [TuitionFeesController::class, 'getTuitionDetails']);
 Route::post('/payments', [PaymentController::class, 'store']);
 Route::get('/payment/{lrn}', [PaymentController::class, 'getPaymentDetailsWithProof']);
+Route::post('/submit-payment', [PaymentController::class, 'newPayment']);
 
 Route::get('/student/{lrn}', [StudentController::class, 'getStudentData']);
-// Route::post('/enrollment/process/{lrn}', [EnrollmentController::class, 'enrollmentProcess']);
-
-//DSF ROUTES
-Route::post('/payment', [PaymentController::class, 'stupaymentdent']);
-Route::post('/register', [DsfController::class, 'register']);
-Route::post('/login', [DsfController::class, 'login']);
-Route::post('/logout', [DsfController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/display', [DsfController::class, 'display']);
-Route::get('/receiptdisplay/{id}', [DsfController::class, 'receiptdisplay']);
-Route::get('/approveEnrollment/{id}', [DsfController::class, 'approveEnrollment']);
-Route::get('/displaygrade', [DsfController::class, 'displaygrade']);
-Route::get('/displaySOA/{id}', [DsfController::class, 'displaySOA']);
-Route::get('/displayStudent', [DsfController::class, 'displayStudent']);
-Route::put('/updatepayment/{id}', [DsfController::class, 'updatepayment']);
+Route::get('/payments/history/{lrn}', [PaymentController::class, 'getPaymentHistory']);

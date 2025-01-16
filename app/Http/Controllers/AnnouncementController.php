@@ -18,15 +18,15 @@ class AnnouncementController extends Controller
 {
     // Fetch announcements with admin, subject, and grade level using query builder
     $announcements = DB::table('announcements')
-        ->join('admins', 'announcements.admin_id', '=', 'admins.admin_id') // Join with admins table
-        ->join('classes', 'announcements.class_id', '=', 'classes.class_id') // Join with classes table
-        ->join('sections', 'classes.section_id', '=', 'sections.section_id') // Join with sections table
-        ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id') // Join with subjects table
+        ->leftJoin('admins', 'announcements.admin_id', '=', 'admins.admin_id') // Left join with admins table
+        ->leftJoin('classes', 'announcements.class_id', '=', 'classes.class_id') // Left join with classes table
+        ->leftJoin('sections', 'classes.section_id', '=', 'sections.section_id') // Left join with sections table
+        ->leftJoin('subjects', 'classes.subject_id', '=', 'subjects.subject_id') // Left join with subjects table
         ->select(
             'announcements.*', // Select all columns from announcements
             DB::raw("CONCAT(admins.fname, ' ', admins.lname) as admin_name"), // Full admin name
-            'subjects.subject_name', // Subject name
-            'sections.grade_level' // Grade level
+            'subjects.subject_name', // Subject name (may be null)
+            'sections.grade_level' // Grade level (may be null)
         )
         ->orderBy('created_at', 'desc') // Order by created_at descending
         ->get();
@@ -72,5 +72,42 @@ class AnnouncementController extends Controller
     public function destroy(Announcement $announcement)
     {
         //
+    }
+
+    public function notification(Request $request)
+    {
+        // Validate the request to ensure LRN is provided
+        $request->validate([
+            'LRN' => 'required|string', // Validate LRN
+        ]);
+    
+        $lrn = $request->input('LRN'); // Get LRN from request
+    
+        // Fetch latest announcements that have not been viewed (view is null)
+        $announcements = Announcement::whereNull('view') // Only get announcements that have not been viewed
+            ->orderBy('created_at', 'desc')
+            ->take(5) // Limit to the latest 5 announcements
+            ->get(['ancmnt_id', 'title', 'created_at']); // Adjust fields as necessary
+    
+        return response()->json($announcements); // Return all notifications without limiting
+    }
+    
+    
+
+    public function viewed(Request $request)
+    {
+        // Validate the request to ensure sid is provided
+        $request->validate([
+            'sid' => 'required|string', // Validate sid
+        ]);
+    
+        $sid = $request->input('sid'); // Get SID from request
+    
+        // Update the view timestamp for all announcements involving the user
+        $updatedCount = DB::table('announcements')
+            ->where('admin_id', '=', $sid) // Assuming admin_id is linked to announcements for this example
+            ->update(['view' => now()]); // Set the view timestamp to the current time
+    
+        return response()->json(['success' => true, 'updated_count' => $updatedCount]);
     }
 }
